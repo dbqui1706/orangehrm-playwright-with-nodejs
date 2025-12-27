@@ -1,8 +1,4 @@
-/**
- * Test cases for Add Customer functionality using Playwright.
- * Direct approach without Page Object Model for simplicity.
- */
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { VALID_USERNAME, VALID_PASSWORD, BASE_URL } from '../../config/config';
 import * as testData from '../../test-data/customers_data.json';
 import { get_current_timestamp } from '../../utils/utils';

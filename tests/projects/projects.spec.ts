@@ -1,11 +1,7 @@
-/**
- * Test cases for Projects and Activities functionality using Playwright.
- * Direct approach without Page Object Model for simplicity.
- */
 import { test, expect } from '@playwright/test';
 import { VALID_USERNAME, VALID_PASSWORD, BASE_URL } from '../../config/config';
 import * as testData from '../../test-data/projects_data.json';
-import { get_current_timestamp, get_current_date_string } from '../../utils/utils';
+import { get_current_timestamp } from '../../utils/utils';
 
 // Extract test cases from JSON
 const PROJECT_DATA = testData.test_cases;
