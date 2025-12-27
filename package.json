@@ -1,10 +1,24 @@
 {
   "name": "orangehrm-playwright-with-nodejs",
   "version": "1.0.0",
-  "description": "",
+  "description": "OrangeHRM test automation using Playwright and TypeScript",
   "main": "index.js",
-  "scripts": {},
-  "keywords": [],
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:debug": "npx playwright test --debug",
+    "test:customer": "npx playwright test tests/customers/customer.spec.ts",
+    "test:ui": "npx playwright test --ui",
+    "report": "npx playwright show-report",
+    "codegen": "npx playwright codegen"
+  },
+  "keywords": [
+    "playwright",
+    "typescript",
+    "automation",
+    "testing",
+    "orangehrm"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
