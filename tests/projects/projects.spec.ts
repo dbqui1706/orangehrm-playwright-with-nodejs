@@ -13,8 +13,7 @@ test.describe('Project Management Tests', () => {
     let needsCleanup: boolean;
 
     /**
-     * Before each test: Login and navigate to Projects page
-     */
+     * Before each test: Login and navigate to Projects page     */
     test.beforeEach(async ({ page }) => {
         // Navigate to login page
         test.setTimeout(120000);
@@ -82,7 +81,6 @@ test.describe('Project Management Tests', () => {
 
         await expect(page.getByRole('table').getByRole('row').filter({ hasText: projectName })
         ).toBeVisible();
-        await page.screenshot({ path: `screenshots/projects/PRJ_TC01.png` });
     });
 
     test('PRJ_TC02: Add project with all fields', async ({ page }) => {
@@ -101,6 +99,8 @@ test.describe('Project Management Tests', () => {
         const adminName = data.test_data.project_admin;
 
         // Act
+        await page.getByRole('button', { name: ' Add' }).click();
+
         // Fill project name
         await page.getByRole('textbox').nth(1).fill(projectName);
 
@@ -127,6 +127,61 @@ test.describe('Project Management Tests', () => {
         await page.waitForLoadState('networkidle');
 
         await expect(page.getByRole('table')).toContainText(projectName);
+    });
+
+    test('PRJ_TC03: Add project with multiple admins', async ({ page }) => {
+        /**
+         * Test Case ID: PRJ_TC03
+         * Description: Verify that a project can be added with multiple project admins
+         * Expected: Project is successfully created and saved with multiple admins
+         */
+        needsCleanup = true;
+
+        // Arrange
+        const data = PROJECT_DATA.PRJ_TC03;
+        const projectName = data.test_data.project_name + '_' + get_current_timestamp();
+        const customerName = data.test_data.customer_name;
+        const adminNames = data.test_data.project_admin; // Array of admin names
+
+        // Act
+        await page.getByRole('button', { name: ' Add' }).click();
+
+        // Fill project name
+        await page.getByRole('textbox').nth(1).fill(projectName);
+        // Select customer from dropdown
+        await page.getByRole('textbox', { name: 'Type for hints...' }).first().fill(customerName);
+        await page.getByRole('option', { name: customerName }).click();
+
+        // Select multiple project admins
+        for (let index = 0; index < adminNames.length; index++) {
+            if (index > 0) {
+                // Click to add another admin field
+                await page.getByRole('button', { name: ' Add Another' }).click();
+            }
+            const adminName = adminNames[index];
+            await page.getByRole('textbox', { name: 'Type for hints...' }).nth(index + 1).fill(adminName);
+            await page.getByRole('option', { name: new RegExp(adminName) }).click();
+        }
+
+        await page.getByRole('button', { name: 'Save' }).click();
+
+        // Assert
+        await expect(page.getByText(data['expected_result'])).toBeVisible();
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(1000);
+
+        await page.getByText('Project Info').click();
+        await page.getByRole('menuitem', { name: 'Projects' }).click();
+        await page.waitForLoadState('networkidle');
+
+        // check project appears in list
+        await expect(page.getByRole('table')).toContainText(projectName);
+
+        // check all admins appear in column name "Project Admins"
+        const row = page.getByRole('row').filter({ hasText: projectName });
+        for (const adminName of adminNames) {
+            await expect(row).toContainText(adminName);
+        }
     });
 
     // ==================== NEGATIVE TEST CASES ====================
@@ -156,8 +211,6 @@ test.describe('Project Management Tests', () => {
 
         // capture screenshot
         await page.screenshot({ path: `screenshots/projects/PRJ_TC04.png` });
-
-        // await page.getByRole('button', { name: ' Cancel' }).click();
     });
 
     test('PRJ_TC05: Missing customer validation', async ({ page }) => {
@@ -182,8 +235,7 @@ test.describe('Project Management Tests', () => {
 
         // Assert
         await expect(page.getByText(data['expected_error'], { exact: true })).toBeVisible();
-        page.screenshot({ path: `screenshots/projects/PRJ_TC05.png` });
-
+        await page.screenshot({ path: `screenshots/projects/PRJ_TC05.png` });
     });
 
     test('PRJ_TC06: Project name at boundary (exactly 50 chars)', async ({ page }) => {
@@ -246,7 +298,7 @@ test.describe('Project Management Tests', () => {
 
         // Assert
         await expect(page.getByText(data['expected_error'])).toBeVisible();
-        page.screenshot({ path: `screenshots/projects/PRJ_TC07.png` });
+        await page.screenshot({ path: `screenshots/projects/PRJ_TC07.png` });
     });
 
     test('PRJ_TC08: Duplicate project name', async ({ page }) => {
@@ -257,7 +309,7 @@ test.describe('Project Management Tests', () => {
          */
         // Arrange
         const data = PROJECT_DATA.PRJ_TC08;
-        const projectName = data.test_data.project_name;
+        const projectName = data.test_data.project_name + '_' + get_current_timestamp();
         const customerName = data.test_data.customer_name;
 
         // Create first project
@@ -267,7 +319,6 @@ test.describe('Project Management Tests', () => {
         await page.getByRole('option', { name: customerName }).click();
         await page.getByRole('button', { name: 'Save' }).click();
         await expect(page.getByText(data['expected_frist_result'])).toBeVisible();
-        await page.waitForLoadState('networkidle');
 
         // nagivate back to Projects page
         await page.getByText('Project Info').click();
@@ -283,7 +334,9 @@ test.describe('Project Management Tests', () => {
 
         // Assert
         await expect(page.getByText('Already exists')).toBeVisible();
-        page.screenshot({ path: `screenshots/projects/PRJ_TC08.png` });
+        await page.screenshot({ path: `screenshots/projects/PRJ_TC08.png` });
+
+        await page.getByRole('button', { name: ' Cancel' }).click();
 
         needsCleanup = true;
     });
@@ -310,23 +363,24 @@ test.describe('Project Management Tests', () => {
 
         // Assert - Discovery test
         const successMessage = page.getByText('Successfully Saved');
-        const errorMessage = page.locator('.oxd-input-field-error-message');
+        const errorSystemMessage = page.getByText('Invalid Parameter');
 
         await Promise.race([
             successMessage.waitFor({ state: 'visible', timeout: 5000 }).catch(() => { }),
-            errorMessage.waitFor({ state: 'visible', timeout: 5000 }).catch(() => { })
+            errorSystemMessage.waitFor({ state: 'visible', timeout: 5000 }).catch(() => { })
         ]);
-
+        
         const hasSuccess = await successMessage.isVisible().catch(() => false);
-        const hasError = await errorMessage.isVisible().catch(() => false);
+        const hasError = await errorSystemMessage.isVisible().catch(() => false);
 
-        page.screenshot({ path: `screenshots/projects/PRJ_TC09.png` });
+        console.log(`PRJ_TC09 Result: Success=${hasSuccess}, Error=${hasError}`);
 
         if (hasSuccess) {
             needsCleanup = true;
+            await page.waitForLoadState('networkidle');
         } else {
-            await page.getByRole('button', { name: ' Cancel' }).click();
-            needsCleanup = false;
+            await page.screenshot({ path: `screenshots/projects/PRJ_TC09.png` });
+            throw new Error('🐛 BUG: System error occurred when using special characters in project name.');
         }
     });
 });

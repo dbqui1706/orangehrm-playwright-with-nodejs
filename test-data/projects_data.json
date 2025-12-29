@@ -29,8 +29,10 @@
         "test_data": {
           "project_name": "Cloud Migration",
           "customer_name": "ACME Ltd",
+          "project_admin": ["Qui Dang", "Employee 1"],
           "description": "Migrate infrastructure to cloud"
-        }
+        },
+        "expected_result": "Successfully Saved"
       },
       "PRJ_TC04": {
         "test_name": "Empty project name validation",
@@ -91,7 +93,7 @@
           "customer_name": "ACME Ltd",
           "description": "Testing special characters"
         },
-        "expected_result": "Successfully Saved"
+        "expected_result": "System should validate special characters in Input to prevent system error."
       },
       "PROJ_TC10": {
         "test_name": "Add activity with valid name for project",
