@@ -248,7 +248,7 @@ test.describe('Project Management Tests', () => {
 
         // Arrange
         const data = PROJECT_DATA.PRJ_TC06;
-        const projectName = data.test_data.project_name; // Exactly 50 characters
+        const projectName = data.test_data.project_name + get_current_timestamp().toString();
         const customerName = data.test_data.customer_name;
 
         // Act
@@ -380,7 +380,10 @@ test.describe('Project Management Tests', () => {
             await page.waitForLoadState('networkidle');
         } else {
             await page.screenshot({ path: `screenshots/projects/PRJ_TC09.png` });
-            throw new Error('🐛 BUG: System error occurred when using special characters in project name.');
+            throw new Error(`🐛 BUG: System rejected project name with special characters.\n` + 
+                `Input: "${projectName}"\n` + 
+                `Lead to system error "Invalid Parameter" and Hanging Test.\n` + 
+                `Expected: ${data['expected_result']}`);
         }
     });
 });
@@ -687,7 +690,10 @@ test.describe('Activity Management Tests', () => {
         if (hasSystemError) {
             console.log(`🐛 BUG: System error occurred instead of duplicate validation for activity name with whitespace.`);
             page.screenshot({ path: `screenshots/projects/PROJ_TC17.png` });
-            test.fail(true, `System error occurred instead of duplicate validation for activity name with whitespace.`);
+            throw new Error(`System error "Invalid Parameter" occurred instead of duplicate validation.\n` +
+                `Input: "${activityNameWithSpaces}"\n` +
+                `Expected: Duplicate validation error after trimming whitespace.`); 
+
         } else {
             await expect(hasDuplicateError,
                 `🐛 WHITESPACE DUPLICATE BUG:\n` +

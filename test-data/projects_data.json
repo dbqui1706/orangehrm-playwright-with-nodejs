@@ -58,7 +58,7 @@
         "test_name": "Project name max length (50 chars)",
         "category": "boundary",
         "test_data": {
-          "project_name": "ABC45678901234567890123456789012345678901234567890",
+          "project_name": "ABC456789012345678901234567890123abc789012345",
           "customer_name": "ACME Ltd",
           "description": "Boundary test for max length"
         },
