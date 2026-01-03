@@ -335,7 +335,12 @@ test.describe('Timesheets Test Suite', () => {
         await page.getByRole('button', { name: 'Submit' }).click();
         // Assert error message
         const hasSuccess = await page.getByText('Successfully Submitted').isVisible().catch(() => false);
+
+        // capture screenshot for evidence if success
+        hasSuccess && await page.screenshot({ path: `screenshots/timesheets/TC03_EmptyTimesheetSubmission.png` });
+        
         // Assert
+
         await expect(hasSuccess,
             `🐛 EMPTY TIMESHEET SUBMISSION BUG:\n` +
             `Expected: Submission blocked with error message\n` +

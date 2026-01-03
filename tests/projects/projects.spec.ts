@@ -334,6 +334,7 @@ test.describe('Project Management Tests', () => {
 
         // Assert
         await expect(page.getByText('Already exists')).toBeVisible();
+
         await page.screenshot({ path: `screenshots/projects/PRJ_TC08.png` });
 
         await page.getByRole('button', { name: ' Cancel' }).click();
@@ -508,14 +509,45 @@ test.describe('Activity Management Tests', () => {
         await page.getByRole('dialog').getByRole('button', { name: 'Cancel' }).click();
     });
 
-    test('PROJ_TC13: Add duplicate activity name', async ({ page }) => {
+    test('PROJ_TC13: Edit activity name', async ({ page }) => {
+        /**
+         * Test Case ID: PROJ_TC13
+         * Description: Verify that an existing activity name can be edited
+         * Expected: Activity name is successfully updated and saved
+         */
+        // Arrange
+        const data = PROJECT_DATA.PROJ_TC13;
+        const originalActivityName = data.test_data.original_activity_name;
+        const updatedActivityName = data.test_data.new_activity_name;
+
+        // Create initial activity
+        await page.getByRole('button', { name: ' Add', exact: true }).click();
+        await page.getByRole('dialog').getByRole('textbox').fill(originalActivityName);
+        await page.getByRole('dialog').getByRole('button', { name: 'Save' }).click();
+        await expect(page.getByText('Successfully Saved')).toBeVisible();
+        await page.waitForLoadState('networkidle');
+        // Edit the activity
+        await page.locator('div.oxd-table').scrollIntoViewIfNeeded();
+        const row = page.getByRole('row').filter({ hasText: originalActivityName });
+        await row.getByRole('button').nth(1).click(); // Click Edit button
+        // clear and fill new name
+        await page.getByRole('dialog').getByRole('textbox').fill(updatedActivityName);
+        await page.getByRole('dialog').getByRole('button', { name: 'Save' }).click();
+        // Assert
+        await expect(page.getByText(data['expected_result'])).toBeVisible();
+        await page.locator('div.oxd-table').scrollIntoViewIfNeeded();
+        await expect(page.getByRole('table')).toContainText(updatedActivityName);  
+    });
+         
+
+    test('PROJ_TC14: Add duplicate activity name', async ({ page }) => {
         /**
          * Test Case ID: PROJ_TC13
          * Description: Verify validation when attempting to create duplicate activity
          * Expected: Error message indicating activity already exists
          */
         // Arrange
-        const data = PROJECT_DATA.PROJ_TC13;
+        const data = PROJECT_DATA.PROJ_TC14;
         const activityName = data.test_data.activity_name + '_' + get_current_timestamp();
 
         // Create first activity
@@ -543,14 +575,14 @@ test.describe('Activity Management Tests', () => {
 
     });
 
-    test('PROJ_TC14: Add activity with special characters in name', async ({ page }) => {
+    test('PROJ_TC15: Add activity with special characters in name', async ({ page }) => {
         /**
          * Test Case ID: PROJ_TC14
          * Description: Verify that an activity can be added with special characters in the name
          * Expected: Observe system behavior for special characters
          */
         // Arrange
-        const data = PROJECT_DATA.PROJ_TC14;
+        const data = PROJECT_DATA.PROJ_TC15;
         const activityName = data.test_data.activity_name;
 
         // Act
@@ -580,14 +612,14 @@ test.describe('Activity Management Tests', () => {
         }
     });
 
-    test('PROJ_TC15: Add multiple activities to a project', async ({ page }) => {
+    test('PROJ_TC16: Add multiple activities to a project', async ({ page }) => {
         /**
          * Test Case ID: PROJ_TC15
          * Description: Verify that multiple activities can be added to a single project
          * Expected: All activities are successfully created and saved
          */
         // Arrange
-        const data = PROJECT_DATA.PROJ_TC15;
+        const data = PROJECT_DATA.PROJ_TC16;
         const activityNames = data.test_data.activity_names;
 
         // Act - Add multiple activities
@@ -606,14 +638,14 @@ test.describe('Activity Management Tests', () => {
         }
     });
 
-    test('PROJ_TC16: Add activity trim whitespace in name', async ({ page }) => {
+    test('PROJ_TC17: Add activity trim whitespace in name', async ({ page }) => {
         /**
          * Test Case ID: PROJ_TC16
          * Description: Verify that leading/trailing whitespace in activity name is trimmed
          * Expected: Whitespace is trimmed, activity created successfully
          */
         // Arrange
-        const data = PROJECT_DATA.PROJ_TC16;
+        const data = PROJECT_DATA.PROJ_TC17;
         const activityNameWithSpaces = data.test_data.activity_name; // "   Development   "
         const trimmedName = activityNameWithSpaces.trim();
 
@@ -644,7 +676,7 @@ test.describe('Activity Management Tests', () => {
         ).toBe(true);
     });
 
-    test('PROJ_TC17: Add activity with duplicate and whitespace in name', async ({ page }) => {
+    test('PROJ_TC18: Add activity with duplicate and whitespace in name', async ({ page }) => {
         /**
          * Test Case ID: PROJ_TC17
          * Description: Verify duplicate validation when activity name has leading/trailing whitespace
@@ -655,7 +687,7 @@ test.describe('Activity Management Tests', () => {
         test.fail(); // Marking as expected to fail if there's a bug with whitespace handling
 
         // Arrange
-        const data = PROJECT_DATA.PROJ_TC17;
+        const data = PROJECT_DATA.PROJ_TC18;
         const activityNameWithSpaces = data.test_data.activity_name; // "   Development   "
         const trimmedName = activityNameWithSpaces.trim();
 
@@ -689,13 +721,13 @@ test.describe('Activity Management Tests', () => {
 
         if (hasSystemError) {
             console.log(`🐛 BUG: System error occurred instead of duplicate validation for activity name with whitespace.`);
-            page.screenshot({ path: `screenshots/projects/PROJ_TC17.png` });
+            await page.screenshot({ path: `screenshots/projects/PROJ_TC17.png` });
             throw new Error(`System error "Invalid Parameter" occurred instead of duplicate validation.\n` +
                 `Input: "${activityNameWithSpaces}"\n` +
                 `Expected: Duplicate validation error after trimming whitespace.`); 
 
         } else {
-            await expect(hasDuplicateError,
+            expect(hasDuplicateError,
                 `🐛 WHITESPACE DUPLICATE BUG:\n` +
                 `Expected: Duplicate validation error for activity name "${activityNameWithSpaces}"\n` +
                 `Actual: No duplicate error shown\n` +

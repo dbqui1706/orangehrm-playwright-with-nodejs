@@ -131,7 +131,20 @@
         "expected_result": "Error validation message or input is truncated to 100 characters",
         "notes": "Activity name is 101 characters"
       },
+
       "PROJ_TC13": {
+        "test_name": "Edit activity name to valid new name",
+        "category": "positive",
+        "description": "Verify that an existing activity's name can be edited to a new valid name",
+        "test_data": {
+          "original_activity_name": "Development",
+          "new_activity_name": "Software Development",
+          "project_name": "Website Redesign",
+          "customer_name": "ACME Ltd"
+        },
+        "expected_result": "Successfully Saved"
+      },
+      "PROJ_TC14": {
         "test_name": "Add duplicate activity name in same project",
         "category": "negative",
         "description": "Verify validation when attempting to create activity with duplicate name in same project",
@@ -144,7 +157,7 @@
         "expected_result": "Error message 'Already exists' for duplicate activity name",
         "notes": "This test creates the activity first, then tries to create it again with same name"
       },
-      "PROJ_TC14": {
+      "PROJ_TC15": {
         "test_name": "Add activity with special characters in name",
         "category": "discovery",
         "description": "Verify that an activity can be added with special characters in the name",
@@ -156,7 +169,7 @@
         "expected_result": "Successfully Saved",
         "notes": "Exploratory test to see how special characters are handled"
       },
-      "PROJ_TC15": {
+      "PROJ_TC16": {
         "test_name": "Add multiple activities to a project",
         "category": "positive",
         "description": "Verify that multiple activities can be added to a single project",
@@ -167,7 +180,7 @@
         },
         "expected_result": "Successfully Saved"
       },
-      "PROJ_TC16": {
+      "PROJ_TC17": {
         "test_name": "Add activity trim whitespace in name",
         "category": "negative",
         "description": "Verify that leading/trailing whitespace in activity name is trimmed and validated",
@@ -178,7 +191,7 @@
         },
         "expected_result": "Whitespace is trimmed, duplicate activity validation triggered"
       },
-      "PROJ_TC17": {
+      "PROJ_TC18": {
         "test_name": "Add activity with duplicatie and whitespace in name",
         "category": "negative",
         "description": "Verify that adding an activity with leading/trailing whitespace that matches an existing activity name triggers duplicate validation",

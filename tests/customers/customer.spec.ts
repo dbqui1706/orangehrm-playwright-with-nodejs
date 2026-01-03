@@ -17,6 +17,7 @@ test.describe('Customer Management Tests', () => {
      * Before each test: Login and navigate to Customer page
      */
     test.beforeEach(async ({ page }) => {
+        test.setTimeout(60000); // Set timeout to 60 seconds
         // Navigate to login page
         await page.goto(BASE_URL);
         await page.waitForTimeout(2000);
@@ -37,13 +38,13 @@ test.describe('Customer Management Tests', () => {
     });
 
     test.afterEach(async ({ page }) => {
-       if (!needsCleanup) return;
-       
+        if (!needsCleanup) return;
+
         // Cleanup: Delete the created customer
-       await page.locator('.oxd-icon.bi-check').first().click();
-       // get button contain text Delete Selected 
-       await page.getByRole('button', { name: ' Delete Selected' }).click();
-       await page.getByRole('button', { name: ' Yes, Delete' }).click();
+        await page.locator('.oxd-icon.bi-check').first().click();
+        // get button contain text Delete Selected 
+        await page.getByRole('button', { name: ' Delete Selected' }).click();
+        await page.getByRole('button', { name: ' Yes, Delete' }).click();
     });
 
     // ==================== POSITIVE TEST CASES ====================
@@ -92,7 +93,7 @@ test.describe('Customer Management Tests', () => {
         await page.getByRole('button', { name: ' Add' }).click();
         await page.locator('form input').fill(customerName);
         await page.getByRole('textbox', { name: 'Type description here' }).fill(description);
-        await page.getByRole('button', { name: 'Save' }).click();   
+        await page.getByRole('button', { name: 'Save' }).click();
         // Assert
         expect(await page.getByText('Successfully Saved')).toBeVisible();
         // Verify customer appears in list
@@ -211,7 +212,7 @@ test.describe('Customer Management Tests', () => {
 
         // Wait for either success or error
         await Promise.race([
-            successMessage.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {}),
+            successMessage.waitFor({ state: 'visible', timeout: 5000 }).catch(() => { }),
         ]);
 
         // Document the actual behavior
@@ -256,7 +257,7 @@ test.describe('Customer Management Tests', () => {
          */
         // Arrange
         const data = CUSTOMER_DATA.CUST_TC08.test_data;
-        const customerName = data.customer_name + '_' + get_current_timestamp();
+        const customerName = data.customer_name;
         const description = data.description;
 
         // Act
@@ -265,19 +266,22 @@ test.describe('Customer Management Tests', () => {
         await page.getByRole('textbox', { name: 'Type description here' }).fill(description);
         await page.getByRole('button', { name: 'Save' }).click();
 
-        // Assert - Discovery test
+        // Assert
         const successMessage = page.getByText('Successfully Saved');
-        const errorMessage = page.locator('.oxd-input-field-error-message');
 
-        await Promise.race([
-            successMessage.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {}),
-            errorMessage.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {})
-        ]);
+        await successMessage.waitFor({ state: 'visible', timeout: 5000 });
 
-        const hasSuccess = await successMessage.isVisible().catch(() => false);
-        const hasError = await errorMessage.isVisible().catch(() => false);
+        const row = page.getByRole('row').filter({ hasText: customerName });
+        await row.getByRole('button').nth(1).click(); // Click edit button to check actual stored name
+        // Wait for form to load
+        await page.waitForLoadState('networkidle');
+        const nameInput = page.locator('form input').first();
+        const actualValue = await nameInput.inputValue();
+        
+        await page.getByRole('button', { name: ' Cancel' }).click();
+        needsCleanup = true;
 
-        console.log(`TC08 Result: Success=${hasSuccess}, Error=${hasError}`);
+        expect(actualValue).toBe(customerName);
     });
 
     test('TC09: Add customer with leading/trailing spaces', async ({ page }) => {
@@ -287,7 +291,6 @@ test.describe('Customer Management Tests', () => {
          * Expected: System should reject leading/trailing spaces or trim them
          */
 
-        test.fail(); // Marking as expected to fail until bug is fixed
         // Arrange
         const data = CUSTOMER_DATA.CUST_TC09;
         const customerName = data.test_data.customer_name;
@@ -312,18 +315,24 @@ test.describe('Customer Management Tests', () => {
         await row.getByRole('button').nth(1).click(); // Click edit button to check actual stored name
         // Wait for form to load
         await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(1000);
 
         const nameInput1 = page.locator('form input').first();
         const actualValue = await nameInput1.inputValue();
-        console.log(`TC09 Debug input: value="${actualValue}"`);
+        console.log(`TC09 Debug input: value="${actualValue}" length=${actualValue.length}, expected="${trimmedName}" length=${trimmedName.length}`);
 
         await page.getByRole('button', { name: ' Cancel' }).click();
         needsCleanup = true;
+
         // Assert the trimmed name matches actual value
-        await expect(trimmedName,
-            `VALIDATION BUG: Expected "${trimmedName}" but got "${actualValue}"`
-        ).toBe(actualValue);
+        if (actualValue.length !== trimmedName.length) {
+            await page.screenshot({ path: `screenshots/customers/TC09_LeadingTrailingSpaces.png` });
+            expect(actualValue,
+                `🐛 LEADING/TRAILING SPACES BUG:\n` +
+                `Expected: Customer name to be trimmed to "${trimmedName}" (length ${trimmedName.length})\n` +
+                `Actual: Customer name stored as "${actualValue}" (length ${actualValue.length})\n` +
+                `Issue: System does not trim leading/trailing spaces from customer name`
+            ).toBe(trimmedName);
+        }
     });
 
     test('TC10: Add customer with numeric name only', async ({ page }) => {
@@ -344,27 +353,13 @@ test.describe('Customer Management Tests', () => {
         await page.getByRole('button', { name: 'Save' }).click();
 
         // Assert - Discovery test
-        const successMessage = page.getByText('Successfully Saved');
-        const errorMessage = page.locator('.oxd-input-field-error-message');
+        await expect(page.getByText('Successfully Saved')).toBeVisible();
+        needsCleanup = true;
 
-        await Promise.race([
-            successMessage.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {}),
-            errorMessage.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {})
-        ]);
-
-        const hasSuccess = await successMessage.isVisible().catch(() => false);
-        const hasError = await errorMessage.isVisible().catch(() => false);
-
-        if (hasSuccess) {
-            await page.waitForLoadState('networkidle');
-            await page.waitForTimeout(1000);
-            await expect(page.getByRole('table')).toContainText(customerName);
-            needsCleanup = true;
-        } else {
-            needsCleanup = false;
-        }
-
-        console.log(`TC10 Result: Numeric name accepted=${hasSuccess}, Error=${hasError}`);
+        // Verify customer appears in list
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(1000);
+        await expect(page.getByRole('table')).toContainText(customerName);
     });
 
     test('TC11: Add customer with duplicate name containing leading/trailing spaces', async ({ page }) => {
@@ -375,8 +370,6 @@ test.describe('Customer Management Tests', () => {
          * Expected: System should recognize "  ABC Corporation  " as duplicate of "ABC Corporation"
          * Actual: System treats them as different customers (BUG)
          */
-
-        test.fail(); // Marking as expected to fail - this is a known bug
 
         // Arrange
         const data = CUSTOMER_DATA.CUST_TC11.test_data;
@@ -405,30 +398,27 @@ test.describe('Customer Management Tests', () => {
         const successMessage = page.getByText('Successfully Saved');
 
         await Promise.race([
-            errorMessage.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {}),
-            successMessage.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {})
+            errorMessage.waitFor({ state: 'visible', timeout: 5000 }).catch(() => { }),
+            successMessage.waitFor({ state: 'visible', timeout: 5000 }).catch(() => { })
         ]);
 
-        const hasError = await errorMessage.isVisible().catch(() => false);
         const hasSuccess = await successMessage.isVisible().catch(() => false);
 
         console.log(`TC11 Result: Expected="Already exists", Actual="${hasSuccess ? 'Successfully Saved (BUG!)' : 'Already exists'}"`);
+       
+        // capture screenshot for evidence if success
+        hasSuccess && await page.screenshot({ path: `screenshots/customers/TC11_DuplicateWithSpaces.png` });
 
-        if (hasSuccess) {
-            // BUG DETECTED: System allowed duplicate with spaces
-            console.log('🐛 BUG CONFIRMED: System allows duplicate customer names when has leading/trailing spaces');
-            await page.waitForLoadState('networkidle');
-        }
+        // await page.getByRole('button', { name: 'Cancel' }).click();
+        needsCleanup = true;
+
         // Assert: This should fail because of the bug
-        expect(hasError,
+        expect(hasSuccess,
             `🐛 DUPLICATE DETECTION BUG:\n` +
             `Expected: "Already exists" error\n` +
             `Actual: Customer was created successfully\n` +
             `Issue: System does not trim spaces before duplicate checking\n` +
             `Created: "${customerNameWithSpaces}" and "${customerNameWithSpaces}" as separate customers`
-        ).toBe(true);
-
-        await page.getByRole('button', { name: 'Cancel' }).click();
-        needsCleanup = true;
+        ).toBe(false);
     });
 });

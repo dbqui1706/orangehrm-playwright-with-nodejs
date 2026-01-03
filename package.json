@@ -7,10 +7,8 @@
     "test": "npx playwright test",
     "test:headed": "npx playwright test --headed",
     "test:debug": "npx playwright test --debug",
-    "test:customer": "npx playwright test tests/customers/customer.spec.ts",
-    "test:ui": "npx playwright test --ui",
     "report": "npx playwright show-report",
-    "codegen": "npx playwright codegen"
+    "codegen": "npx playwright codegen https://opensource-demo.orangehrmlive.com/"
   },
   "keywords": [
     "playwright",
