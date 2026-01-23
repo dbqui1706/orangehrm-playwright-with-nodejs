@@ -22,3 +22,14 @@ specs/
 
 # images
 screenshots/
+
+# 3-Layer Architecture
+.tmp/
+.env
+credentials.json
+token.json
+
+.directives/
+.execution/
+
+AGENTS.md

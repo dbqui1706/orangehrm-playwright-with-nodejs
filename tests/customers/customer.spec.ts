@@ -277,7 +277,7 @@ test.describe('Customer Management Tests', () => {
         await page.waitForLoadState('networkidle');
         const nameInput = page.locator('form input').first();
         const actualValue = await nameInput.inputValue();
-        
+
         await page.getByRole('button', { name: ' Cancel' }).click();
         needsCleanup = true;
 
@@ -405,7 +405,7 @@ test.describe('Customer Management Tests', () => {
         const hasSuccess = await successMessage.isVisible().catch(() => false);
 
         console.log(`TC11 Result: Expected="Already exists", Actual="${hasSuccess ? 'Successfully Saved (BUG!)' : 'Already exists'}"`);
-       
+
         // capture screenshot for evidence if success
         hasSuccess && await page.screenshot({ path: `screenshots/customers/TC11_DuplicateWithSpaces.png` });
 
